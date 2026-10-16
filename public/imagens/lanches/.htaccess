@@ -1,0 +1,5 @@
+# Imagens enviadas nunca são executadas como código.
+<FilesMatch "\.(php|phtml|phar)$">
+    Require all denied
+</FilesMatch>
+php_flag engine off

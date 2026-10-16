@@ -1,0 +1,189 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body, html {
+  height: 100%;
+  font-family: 'Poppins', sans-serif;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.left-side {
+  flex: 1;
+  background-color: #c0392b;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.left-side .logo {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+}
+
+.right-side {
+  flex: 1;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-container {
+  background: #fff;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #eee;
+}
+
+.login-container h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #333;
+}
+
+.login-container label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #555;
+}
+
+.login-container input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.login-container button {
+  width: 100%;
+  padding: 10px;
+  background-color: #c0392b;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.login-container button:hover {
+  background-color: #a93226;
+  transform: scale(1.02);
+}
+
+.login-container p {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.login-container p a {
+  color: #c0392b;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.login-container p a:hover {
+  color: #a93226;
+  text-decoration: underline;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 20px; 
+  row-gap: 10px; 
+}
+
+.form-buttons {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.form-buttons button {
+  width: 50%;
+}
+
+.form-buttons p {
+  margin-top: 10px;
+} 
+
+.alerta {
+  padding: 10px 12px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 0.95em;
+}
+
+.alerta-erro {
+  background-color: #fdecea;
+  color: #8a1c13;
+}
+
+.alerta-sucesso {
+  background-color: #e6f4ea;
+  color: #1e6b34;
+}
+
+.login-container select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.contas-demo {
+  margin-top: 20px;
+  padding: 10px;
+  background: #f7f7f7;
+  border-radius: 6px;
+  font-size: 0.85em;
+  color: #555;
+  text-align: center;
+}
+
+@media (max-width: 800px) {
+  .container {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .left-side {
+    padding: 30px;
+  }
+
+  .left-side .logo {
+    max-height: 140px;
+  }
+
+  .right-side {
+    padding: 20px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-buttons {
+    grid-column: span 1;
+  }
+}
