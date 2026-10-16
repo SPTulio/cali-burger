@@ -1,0 +1,17 @@
+.env
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+__pycache__/
+.pytest_cache/
+tests/capturas/
+
+# Imagens enviadas pelo sistema (as de exemplo ficam versionadas)
+public/imagens/lanches/*
+!public/imagens/lanches/cali_*.webp
+!public/imagens/lanches/x_burger.webp
+!public/imagens/lanches/suco_uva.webp
+!public/imagens/lanches/refrigerante.webp
+!public/imagens/lanches/agua.webp
+!public/imagens/lanches/.htaccess
