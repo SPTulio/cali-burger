@@ -1,0 +1,52 @@
+# Sobe o Cali Burger completo: servidor web (PHP + Apache) e banco MySQL
+# já com a estrutura e os dados de exemplo.
+#
+#   cp .env.example .env
+#   docker compose up -d --build
+#   Acesse http://localhost:8080
+services:
+  web:
+    build: .
+    ports:
+      - "${PORTA_WEB:-8080}:80"
+    environment:
+      DB_HOST: db
+      DB_USUARIO: ${DB_USUARIO:-caliburger}
+      DB_SENHA: ${DB_SENHA:-caliburger}
+      DB_NOME: db_caliburger
+      MODO_DEBUG: ${MODO_DEBUG:-0}
+      MOSTRAR_CONTAS_DEMO: ${MOSTRAR_CONTAS_DEMO:-1}
+      TZ: America/Sao_Paulo
+    volumes:
+      # O código da máquina é usado direto no container: edite e recarregue a página.
+      - ./app:/var/www/html/app
+      - ./public:/var/www/html/public
+      # Imagens enviadas pelo sistema ficam em um volume próprio (com permissão de escrita).
+      - imagens_lanches:/var/www/html/public/imagens/lanches
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: db_caliburger
+      MYSQL_USER: ${DB_USUARIO:-caliburger}
+      MYSQL_PASSWORD: ${DB_SENHA:-caliburger}
+      MYSQL_ROOT_PASSWORD: ${DB_SENHA_ROOT:-troque-esta-senha}
+      TZ: America/Sao_Paulo
+    ports:
+      - "${PORTA_MYSQL:-3307}:3306"
+    volumes:
+      # Na primeira vez, cria as tabelas e carrega os dados de exemplo.
+      - ./database:/docker-entrypoint-initdb.d:ro
+      - dados_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  dados_mysql:
+  imagens_lanches:
