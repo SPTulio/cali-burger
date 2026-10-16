@@ -1,0 +1,93 @@
+name: Testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+
+jobs:
+  testes:
+    name: Sintaxe, testes de ponta a ponta e capturas de tela
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Verifica a sintaxe dos arquivos PHP
+        run: |
+          php -v | head -1
+          find app public -name '*.php' -print0 | xargs -0 -n1 php -l | grep -v '^No syntax errors' || true
+          ! find app public -name '*.php' -print0 | xargs -0 -n1 php -l 2>&1 | grep -q 'Parse error'
+
+      - name: Sobe o sistema no Docker (PHP + MySQL com os dados de exemplo)
+        run: |
+          cp .env.example .env
+          sed -i 's/^MODO_DEBUG=0/MODO_DEBUG=1/' .env
+          docker compose up -d --build --wait
+          for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:8080/login.php && break; sleep 2; done
+          curl -sf -o /dev/null http://localhost:8080/login.php
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instala as dependências dos testes
+        run: |
+          pip install -r tests/requirements.txt
+          python -m playwright install --with-deps chromium
+
+      # As capturas usam os dados de exemplo, então rodam antes dos testes (que criam dados novos).
+      - name: Gera as capturas de tela
+        run: python tests/capturas.py target/capturas 2>&1 | tee -a resultado.log; exit ${PIPESTATUS[0]}
+
+      - name: Testes de ponta a ponta
+        run: python -m pytest tests -q -rf 2>&1 | tee -a resultado.log; exit ${PIPESTATUS[0]}
+
+      - name: Confere se o PHP registrou avisos ou erros
+        run: |
+          docker compose logs web > web.log 2>&1
+          if grep -E "PHP (Warning|Notice|Deprecated|Fatal)|\[Cali Burger\]" web.log; then
+            grep -E "PHP (Warning|Notice|Deprecated|Fatal)|\[Cali Burger\]" web.log >> resultado.log
+            exit 1
+          fi
+
+      - name: Resumo
+        if: success()
+        run: |
+          resumo=$(grep -E "passed|failed|png" resultado.log | tail -25 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
+          echo "::notice title=Resultado::${resumo}"
+
+      - name: Resume os erros encontrados
+        if: failure()
+        run: |
+          docker compose logs web 2>&1 | grep -iE "php|error|cali burger" | tail -20 >> resultado.log || true
+          resumo=$(grep -E "FAILED|Error|error|assert|Aviso|PHP |Traceback|Exception|^E " resultado.log | head -70 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
+          echo "::error title=Falha nos testes::${resumo}"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capturas-de-tela
+          path: target/capturas
+
+      # Em PRs com o rótulo "atualizar-capturas", salva as imagens novas em docs/img na própria branch.
+      - name: Atualiza as capturas do README
+        if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'atualizar-capturas') && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          git fetch origin "$BRANCH"
+          git checkout -B "$BRANCH" "origin/$BRANCH"
+          mkdir -p docs/img
+          cp target/capturas/*.png docs/img/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/img
+          if git diff --cached --quiet; then
+            echo "Capturas já estão atualizadas."
+          else
+            git commit -m "Atualiza capturas de tela do README"
+            git push origin "$BRANCH"
+          fi
